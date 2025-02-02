@@ -30,7 +30,9 @@ const App = () => {
   const [isOpen, onCloseModal] = useState(false)
   const [product, setProduct] = useState("");
 
-  // Filter products based on search and category
+  const storedUser = localStorage.getItem('user');
+  const [isUser, setIsUser] = useState(storedUser)
+
   useEffect(() => {
     let result = products;
 
@@ -51,13 +53,15 @@ const App = () => {
   }, [products, selectedCategory, searchQuery]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    console.log("storedUser==>", storedUser);
+    const storedUser = localStorage.getItem("user");
+
 
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
-      setIsAuthenticated(parsedUser?.email && parsedUser?.password ? true : false);
+      setIsUser(parsedUser); // Update isUser state
+      setIsAuthenticated(!!(parsedUser?.email && parsedUser?.password));
     } else {
+      setIsUser(null);
       setIsAuthenticated(false);
     }
   }, [user]);
@@ -84,15 +88,7 @@ const App = () => {
     setIsAuthenticated(prevState => !prevState);;
   };
 
-  const handleCheckout = () => {
-    if (!isAuthenticated) {
-      toast.error("Please login to checkout");
-      return;
-    }
-    toast.success("Thank you for your purchase!");
-    clearCart();
-    setShowCart(false);
-  };
+
 
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
@@ -157,10 +153,10 @@ const App = () => {
           items={cart}
           isAuthenticated={isAuthenticated}
           onRemoveItem={removeFromCart}
-          onCheckout={handleCheckout}
+
         />
-        <ToastContainer position="top-right" autoClose={3000} />
         <ProductModal isOpen={isOpen} product={product} onCloseModal={onCloseModal} />
+        <ToastContainer position="top-right" autoClose={3000} />
       </div>
     </div>
   );

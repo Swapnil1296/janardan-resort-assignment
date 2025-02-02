@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../hooks/useCart';
 
-const CartModal = ({ isOpen, onClose, items, onRemoveItem, onCheckout, isAuthenticated }) => {
+const CartModal = ({ isOpen, onClose, items, onRemoveItem, isAuthenticated }) => {
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const { user } = useAuth();
+    const { clearCart } = useCart();
+
 
 
     const handleCheckout = () => {
-        if (isAuthenticated) {
-            onCheckout();
-        } else {
-            toast.error("You must be logged in to proceed with checkout.");
+        if (!user) {
+            toast.error("Please login to checkout");
+            return;
         }
+        toast.success("Thank you for your purchase!");
+        clearCart();
+        onClose(false);
     };
 
     return (
@@ -56,8 +64,8 @@ const CartModal = ({ isOpen, onClose, items, onRemoveItem, onCheckout, isAuthent
                             <span className="font-semibold dark:text-white">${total.toFixed(2)}</span>
                         </div>
                         <button
-                            onClick={handleCheckout} // Call the checkout handler
-                            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            onClick={handleCheckout}
+                            className="w-full px-4 py-2 bg-blue-600 cursor-pointer text-white rounded-lg hover:bg-blue-700"
                         >
                             Checkout
                         </button>
