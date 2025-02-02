@@ -1,47 +1,56 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-
-
-import { GoogleOAuthProvider } from '@react-oauth/google';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { auth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut } from "./firebase";
 
 const AuthContext = createContext();
 
-// Update the AuthProvider to include Google authentication
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const loginWithGoogle = async (credential) => {
+    const loginWithEmailPassword = async (email, password) => {
         try {
             setLoading(true);
             setError(null);
 
-            // Decode the credential to get user information
-            const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: {
-                    'Authorization': `Bearer ${credential}`
-                }
-            });
 
-            if (!response.ok) {
-                throw new Error('Failed to get user info');
-            }
 
-            const userData = await response.json();
 
-            const userObject = {
-                id: userData.sub,
-                email: userData.email,
-                name: userData.name,
-                picture: userData.picture,
-                firstName: userData.given_name,
-                lastName: userData.family_name
+
+            const userData = { email, password }
+            // Store in localStorage
+            localStorage.setItem("user", JSON.stringify(userData));
+            setUser(userData);
+
+            return userData;
+
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loginWithGoogle = async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+            setLoading(true);
+            setError(null);
+
+            const userCredential = await signInWithPopup(auth, provider);
+            const loggedInUser = userCredential.user;
+
+            const userData = {
+                id: loggedInUser.uid,
+                email: loggedInUser.email,
+                name: loggedInUser.displayName,
+                picture: loggedInUser.photoURL,
             };
+            localStorage.setItem("user", JSON.stringify(userData)); // Store in localStorage
 
-            setUser(userObject);
-            // Store the token in localStorage
-            localStorage.setItem('auth_token', credential);
-            return userObject;
+            setUser(userData);
+            return userData;
         } catch (err) {
             setError(err.message);
             throw err;
@@ -53,8 +62,8 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         try {
             setLoading(true);
-            // Clear local storage
-            localStorage.removeItem('auth_token');
+            await signOut(auth);
+            localStorage.removeItem("user"); 
             setUser(null);
         } catch (err) {
             setError(err.message);
@@ -63,12 +72,28 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Add check for existing token on mount
     useEffect(() => {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-            loginWithGoogle(token).catch(console.error);
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
         }
+
+        const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+            if (firebaseUser) {
+                const userData = {
+                    id: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    name: firebaseUser.displayName,
+                    picture: firebaseUser.photoURL,
+                };
+                localStorage.setItem("user", JSON.stringify(userData));
+                setUser(userData);
+            } else {
+                setUser(null);
+            }
+        });
+
+        return unsubscribe; 
     }, []);
 
     return (
@@ -77,8 +102,9 @@ export const AuthProvider = ({ children }) => {
                 user,
                 loading,
                 error,
+                loginWithEmailPassword,
                 loginWithGoogle,
-                logout
+                logout,
             }}
         >
             {children}

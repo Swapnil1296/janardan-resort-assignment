@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { toast } from 'react-toastify';
 
-const CartModal = ({ isOpen, onClose, items, onRemoveItem, onCheckout }) => {
+const CartModal = ({ isOpen, onClose, items, onRemoveItem, onCheckout, isAuthenticated }) => {
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+
+    const handleCheckout = () => {
+        if (isAuthenticated) {
+            onCheckout();
+        } else {
+            toast.error("You must be logged in to proceed with checkout.");
+        }
+    };
 
     return (
         <div className={`fixed inset-0 z-50 ${isOpen ? '' : 'hidden'}`}>
@@ -46,7 +56,7 @@ const CartModal = ({ isOpen, onClose, items, onRemoveItem, onCheckout }) => {
                             <span className="font-semibold dark:text-white">${total.toFixed(2)}</span>
                         </div>
                         <button
-                            onClick={onCheckout}
+                            onClick={handleCheckout} // Call the checkout handler
                             className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                         >
                             Checkout
@@ -58,4 +68,4 @@ const CartModal = ({ isOpen, onClose, items, onRemoveItem, onCheckout }) => {
     );
 };
 
-export default CartModal
+export default CartModal;

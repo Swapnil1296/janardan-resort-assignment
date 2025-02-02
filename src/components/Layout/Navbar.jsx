@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, ShoppingCart, Sun, Moon } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import LoginModal from './Auth/LoginModal';
+import { useAuth } from '../../context/AuthContext';
+import LoginModal from '../Auth/LoginModal';
 
 const Navbar = ({
     isDarkMode,
@@ -13,9 +13,20 @@ const Navbar = ({
     toggleCart
 }) => {
 
-
     const [showLoginModal, setShowLoginModal] = useState(false);
     const { user, logout } = useAuth();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        // Check if the user exists in localStorage
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setIsLoggedIn(true);
+        } else {
+            setIsLoggedIn(false);
+        }
+    }, []);
+
     return (
         <nav className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-md z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -57,14 +68,6 @@ const Navbar = ({
                             )}
                         </button>
 
-                        {/* <button
-                            onClick={isAuthenticated ? handleLogout : handleLogin}
-                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-                        >
-                            {isAuthenticated ? 'Logout' : 'Login'}
-                        </button> */}
-
-
                         {!user ? (
                             <button
                                 onClick={() => setShowLoginModal(true)}
@@ -85,7 +88,6 @@ const Navbar = ({
                             isOpen={showLoginModal}
                             onClose={() => setShowLoginModal(false)}
                         />
-
                     </div>
                 </div>
             </div>
@@ -93,5 +95,4 @@ const Navbar = ({
     );
 };
 
-
-export default Navbar
+export default Navbar;

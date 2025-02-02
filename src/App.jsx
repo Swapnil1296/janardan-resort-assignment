@@ -1,19 +1,24 @@
-// src/App.jsx
 import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
-import ProductGrid from './components/ProductGrid';
-import CartModal from './components/CartModal';
-import Pagination from './components/Pagination';
+import Navbar from './components/Layout/Navbar';
+import Sidebar from './components/Layout/Sidebar';
+import ProductGrid from './components/Products/ProductGrid';
+import CartModal from './components/Cart/CartModal';
+import Pagination from './components/Pagination/Pagination';
 import { useProducts } from './hooks/useProducts';
 import { useCart } from './hooks/useCart';
-import { DarkModeProvider, useDarkMode } from './context/DarkModeContext';
+import { useDarkMode } from './context/DarkModeContext';
+
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ProductModal from './components/Products/ProductModal';
+import LoadingSpinner from './components/LoadingSpinner';
+import { useAuth } from './context/AuthContext';
 
 const App = () => {
   const { products, categories, loading, error } = useProducts();
   const { cart, addToCart, removeFromCart, clearCart } = useCart();
+  const { logout, user } = useAuth
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  // const [isDarkMode, toggleDarkMode] = useState(false)
 
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -22,9 +27,10 @@ const App = () => {
   const [showCart, setShowCart] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const productsPerPage = 8;
+  const [isOpen, onCloseModal] = useState(false)
+  const [product, setProduct] = useState("");
 
   // Filter products based on search and category
-  // src/App.jsx (continued)
   useEffect(() => {
     let result = products;
 
@@ -44,6 +50,18 @@ const App = () => {
     setCurrentPage(1); // Reset to first page when filters change
   }, [products, selectedCategory, searchQuery]);
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    console.log("storedUser==>", storedUser);
+
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setIsAuthenticated(parsedUser?.email && parsedUser?.password ? true : false);
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, [user]);
+
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
   };
@@ -55,7 +73,6 @@ const App = () => {
 
   const handleLogin = async () => {
     try {
-      // Simulate Google login
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Login failed:', error);
@@ -63,16 +80,16 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    logout()
+    setIsAuthenticated(prevState => !prevState);;
   };
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      alert('Please login to checkout');
+      toast.error("Please login to checkout");
       return;
     }
-    // Implement checkout logic here
-    alert('Thank you for your purchase!');
+    toast.success("Thank you for your purchase!");
     clearCart();
     setShowCart(false);
   };
@@ -80,11 +97,7 @@ const App = () => {
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -96,8 +109,8 @@ const App = () => {
   }
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
-      <div className="bg-gray-100 dark:bg-gray-900 min-h-screen">
+    <div className={`min-h-screen ${isDarkMode ? "dark-mode" : ""}`}>
+      <div className={`bg-gray-100 ${isDarkMode ? "bg-gray-900 text-white" : "bg-white text-black"} min-h-screen`}>
         <Navbar
           isDarkMode={isDarkMode}
           toggleDarkMode={toggleDarkMode}
@@ -125,8 +138,8 @@ const App = () => {
               productsPerPage={productsPerPage}
               onAddToCart={addToCart}
               onViewDetails={(product) => {
-                // Implement product details view
-                console.log('View details:', product);
+                onCloseModal(!isOpen);
+                setProduct(product)
               }}
             />
 
@@ -142,16 +155,15 @@ const App = () => {
           isOpen={showCart}
           onClose={() => setShowCart(false)}
           items={cart}
+          isAuthenticated={isAuthenticated}
           onRemoveItem={removeFromCart}
           onCheckout={handleCheckout}
         />
+        <ToastContainer position="top-right" autoClose={3000} />
+        <ProductModal isOpen={isOpen} product={product} onCloseModal={onCloseModal} />
       </div>
     </div>
   );
 };
 
-export default App
-
-
-
-
+export default App;

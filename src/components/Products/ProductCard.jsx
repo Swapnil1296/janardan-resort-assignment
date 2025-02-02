@@ -11,19 +11,19 @@ const ProductCard = ({ product, onAddToCart, onViewDetails }) => {
                 />
             </div>
             <div className="p-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate">{product.title}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{product.category}</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">${product.price}</p>
-                <div className="mt-4 flex space-x-2">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">{product.title}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{product.category}</p>
+                <p className="text-base font-bold text-gray-900 dark:text-white mt-2">${product.price}</p>
+                <div className="mt-3 flex space-x-2">
                     <button
                         onClick={() => onAddToCart(product)}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className="flex-1 px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
                     >
                         Add to Cart
                     </button>
                     <button
                         onClick={() => onViewDetails(product)}
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="flex-1 px-3 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                     >
                         Details
                     </button>
@@ -33,4 +33,4 @@ const ProductCard = ({ product, onAddToCart, onViewDetails }) => {
     );
 };
 
-export default ProductCard
+export default ProductCard;
