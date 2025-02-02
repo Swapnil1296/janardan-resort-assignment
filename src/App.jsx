@@ -7,17 +7,17 @@ import Pagination from './components/Pagination/Pagination';
 import { useProducts } from './hooks/useProducts';
 import { useCart } from './hooks/useCart';
 import { useDarkMode } from './context/DarkModeContext';
-
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProductModal from './components/Products/ProductModal';
 import LoadingSpinner from './components/LoadingSpinner';
 import { useAuth } from './context/AuthContext';
+import NoProduct from './components/Products/NoProducts';
 
 const App = () => {
   const { products, categories, loading, error } = useProducts();
   const { cart, addToCart, removeFromCart, clearCart } = useCart();
-  const { logout, user } = useAuth
+  const { logout, user } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -27,11 +27,11 @@ const App = () => {
   const [showCart, setShowCart] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const productsPerPage = 8;
-  const [isOpen, onCloseModal] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
   const [product, setProduct] = useState("");
 
   const storedUser = localStorage.getItem('user');
-  const [isUser, setIsUser] = useState(storedUser)
+  const [isUser, setIsUser] = useState(storedUser);
 
   useEffect(() => {
     let result = products;
@@ -52,9 +52,18 @@ const App = () => {
     setCurrentPage(1); // Reset to first page when filters change
   }, [products, selectedCategory, searchQuery]);
 
+  const handleCheckout = () => {
+    if (!user) {
+      toast.error("Please login to checkout");
+      return;
+    }
+    toast.success("Thank you for your purchase!");
+    clearCart();
+    onClose(false);
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-
 
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
@@ -84,11 +93,9 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    logout()
-    setIsAuthenticated(prevState => !prevState);;
+    logout();
+    setIsAuthenticated(false);
   };
-
-
 
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
@@ -128,22 +135,28 @@ const App = () => {
           />
 
           <main className="p-6">
-            <ProductGrid
-              products={filteredProducts}
-              currentPage={currentPage}
-              productsPerPage={productsPerPage}
-              onAddToCart={addToCart}
-              onViewDetails={(product) => {
-                onCloseModal(!isOpen);
-                setProduct(product)
-              }}
-            />
+            {filteredProducts.length > 0 ? (
+              <ProductGrid
+                products={filteredProducts}
+                currentPage={currentPage}
+                productsPerPage={productsPerPage}
+                onAddToCart={addToCart}
+                onViewDetails={(product) => {
+                  setIsOpen(true);
+                  setProduct(product);
+                }}
+              />
+            ) : (
+              <NoProduct />
+            )}
 
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+            {filteredProducts.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
           </main>
         </div>
 
@@ -153,9 +166,10 @@ const App = () => {
           items={cart}
           isAuthenticated={isAuthenticated}
           onRemoveItem={removeFromCart}
-
+          OnCheckOut={handleCheckout}
         />
-        <ProductModal isOpen={isOpen} product={product} onCloseModal={onCloseModal} />
+
+        <ProductModal isOpen={isOpen} product={product} onCloseModal={() => setIsOpen(false)} />
         <ToastContainer position="top-right" autoClose={3000} />
       </div>
     </div>

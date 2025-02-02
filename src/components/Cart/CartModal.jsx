@@ -1,26 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { useAuth } from '../../context/AuthContext';
-import { useCart } from '../../hooks/useCart';
 
-const CartModal = ({ isOpen, onClose, items, onRemoveItem, isAuthenticated }) => {
+
+const CartModal = ({ isOpen, onClose, items, onRemoveItem, isAuthenticated, OnCheckOut }) => {
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    const { user } = useAuth();
-    const { clearCart } = useCart();
-
-
-
-    const handleCheckout = () => {
-        if (!user) {
-            toast.error("Please login to checkout");
-            return;
-        }
-        toast.success("Thank you for your purchase!");
-        clearCart();
-        onClose(false);
-    };
 
     return (
         <div className={`fixed inset-0 z-50 ${isOpen ? '' : 'hidden'}`}>
@@ -64,7 +48,7 @@ const CartModal = ({ isOpen, onClose, items, onRemoveItem, isAuthenticated }) =>
                             <span className="font-semibold dark:text-white">${total.toFixed(2)}</span>
                         </div>
                         <button
-                            onClick={handleCheckout}
+                            onClick={OnCheckOut}
                             className="w-full px-4 py-2 bg-blue-600 cursor-pointer text-white rounded-lg hover:bg-blue-700"
                         >
                             Checkout

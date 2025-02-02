@@ -17,13 +17,13 @@ const ProductCard = ({ product, onAddToCart, onViewDetails }) => {
                 <div className="mt-3 flex space-x-2">
                     <button
                         onClick={() => onAddToCart(product)}
-                        className="flex-1 px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                        className="flex-1 px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition cursor-pointer"
                     >
                         Add to Cart
                     </button>
                     <button
                         onClick={() => onViewDetails(product)}
-                        className="flex-1 px-3 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                        className="flex-1 px-3 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 cursor-pointer dark:hover:bg-gray-700 transition"
                     >
                         Details
                     </button>
